@@ -9,6 +9,26 @@ export function JobResultImport({ jobId }: { jobId: string }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  async function importLatestGeneration() {
+    setError(null);
+
+    try {
+      const response = await fetch("/api/generated-result", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      const result: unknown = await response.json();
+
+      await saveJobResult(jobId, result);
+    } catch {
+      setError("Could not import the latest generated result.");
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -53,10 +73,11 @@ export function JobResultImport({ jobId }: { jobId: string }) {
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
       <button
-        type="submit"
-        className="mt-4 rounded bg-black px-4 py-2 text-white"
+        type="button"
+        onClick={importLatestGeneration}
+        className="rounded border px-4 py-2"
       >
-        Import
+        Import latest generation
       </button>
     </form>
   );
