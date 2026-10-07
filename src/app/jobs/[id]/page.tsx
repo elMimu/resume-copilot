@@ -11,6 +11,8 @@ import { db } from "@/db/databse";
 import type { z } from "zod";
 
 import { resumeSchema } from "@/schemas/job-result";
+import { useState } from "react";
+import { saveJobResult } from "@/db/job-results";
 
 type Resume = z.infer<typeof resumeSchema>;
 
@@ -21,6 +23,51 @@ export default function JobPage() {
   const job = useLiveQuery(() => db.jobs.get(jobId), [jobId]);
 
   const result = useLiveQuery(() => db.jobResults.get(jobId), [jobId]);
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  async function generateResume() {
+    if (!job) {
+      return;
+    }
+
+    setIsGenerating(true);
+    setGenerationError(null);
+
+    try {
+      const response = await fetch("/api/generate-resume", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          company: job.company,
+          title: job.title,
+          description: job.description,
+          url: job.url || undefined,
+        }),
+      });
+
+      const data: unknown = await response.json();
+
+      if (!response.ok) {
+        const error =
+          typeof data === "object" && data !== null && "error" in data
+            ? String(data.error)
+            : "Resume generation failed.";
+
+        throw new Error(error);
+      }
+
+      await saveJobResult(job.id, data);
+    } catch (error) {
+      setGenerationError(
+        error instanceof Error ? error.message : "Resume generation failed.",
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }
 
   if (job === undefined) {
     return (
@@ -83,6 +130,19 @@ export default function JobPage() {
           {!result ? (
             <div className="space-y-6">
               <PendingGeneration />
+
+              <button
+                type="button"
+                onClick={generateResume}
+                disabled={isGenerating}
+                className="rounded border px-4 py-2 disabled:opacity-50"
+              >
+                {isGenerating ? "Generating..." : "Generate tailored resume"}
+              </button>
+
+              {generationError && (
+                <p className="text-sm text-red-600">{generationError}</p>
+              )}
 
               <JobResultImport jobId={jobId} />
             </div>
