@@ -43,7 +43,11 @@ export default function HomePage() {
           <tbody>
             {jobs?.map((job) => (
               <tr key={job.id} className="border-b last:border-0">
-                <td className="p-3 font-medium">{job.title}</td>
+                <td className="p-3 font-medium">
+                  <Link href={`/jobs/${job.id}`} className="hover:underline">
+                    {job.title}
+                  </Link>
+                </td>
                 <td className="p-3">{job.company}</td>
                 <td className="p-3">{job.status}</td>
                 <td className="p-3">

@@ -22,3 +22,7 @@ export async function createJob(
 export async function deleteJob(id: string): Promise<void> {
   await db.jobs.delete(id);
 }
+
+export async function getJob(id: string): Promise<Job | undefined> {
+  return db.jobs.get(id);
+}
