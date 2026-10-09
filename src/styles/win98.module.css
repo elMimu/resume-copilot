@@ -1,0 +1,617 @@
+.shell {
+  --win98-desktop: #008080;
+  --win98-face: #c0c0c0;
+  --win98-light: #ffffff;
+  --win98-mid: #808080;
+  --win98-dark: #000000;
+  --win98-title: #000080;
+  --win98-text: #000000;
+  --win98-muted: #404040;
+
+  min-height: 100vh;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    var(--win98-desktop);
+  background-size: 4px 4px;
+  color: var(--win98-text);
+  font-family:
+    "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Arial, sans-serif;
+  font-size: 12px;
+}
+
+.desktop {
+  width: min(1280px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 40px;
+}
+
+.window {
+  background: var(--win98-face);
+  border-top: 2px solid var(--win98-light);
+  border-left: 2px solid var(--win98-light);
+  border-right: 2px solid var(--win98-dark);
+  border-bottom: 2px solid var(--win98-dark);
+  box-shadow:
+    inset -1px -1px var(--win98-mid),
+    inset 1px 1px #dfdfdf;
+}
+
+.titleBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 6px;
+  background: var(--win98-title);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.windowBody {
+  padding: 14px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: #000080;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.jobHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 8px 14px;
+}
+
+.jobIdentity {
+  min-width: 0;
+}
+
+.jobTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.jobTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.company {
+  margin: 5px 0 0;
+  color: var(--win98-muted);
+}
+
+.overall {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  color: #000080;
+}
+
+.overallLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.overallScore {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.status {
+  padding: 1px 5px;
+  background: #ffffe1;
+  border: 1px solid #808080;
+  color: #000;
+  text-transform: capitalize;
+}
+
+.externalLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #000080;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.externalLink:hover {
+  text-decoration: underline;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 12px;
+  background: #b4c3dc;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #808080;
+  overflow-x: auto;
+}
+
+.navButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: max-content;
+  padding: 11px 4px 9px;
+  border: 0;
+  background: transparent;
+  color: #202020;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.navButton:hover {
+  color: #000080;
+}
+
+.navButtonActive {
+  color: #000080;
+}
+
+.navButtonActive::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  left: 2px;
+  height: 2px;
+  background: #000080;
+}
+
+.content {
+  min-height: 540px;
+  padding: 18px 8px 8px;
+}
+
+.sectionHeading {
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sectionDescription {
+  margin: 4px 0 0;
+  color: var(--win98-muted);
+  line-height: 1.5;
+}
+
+.sunken {
+  background: #fff;
+  border-top: 2px solid var(--win98-mid);
+  border-left: 2px solid var(--win98-mid);
+  border-right: 2px solid var(--win98-light);
+  border-bottom: 2px solid var(--win98-light);
+  box-shadow:
+    inset 1px 1px var(--win98-dark),
+    inset -1px -1px #dfdfdf;
+}
+
+.description {
+  min-height: 280px;
+  padding: 14px;
+  white-space: pre-wrap;
+  line-height: 1.55;
+  color: #000;
+}
+
+.requirementGroups {
+  display: grid;
+  gap: 12px;
+}
+
+.requirementGroup {
+  background: var(--win98-face);
+  border-top: 2px solid var(--win98-light);
+  border-left: 2px solid var(--win98-light);
+  border-right: 2px solid var(--win98-dark);
+  border-bottom: 2px solid var(--win98-dark);
+}
+
+.requirementStrong {
+  box-shadow: inset 4px 0 #008000;
+}
+
+.requirementPartial {
+  box-shadow: inset 4px 0 #b8860b;
+}
+
+.requirementMissing {
+  box-shadow: inset 4px 0 #b22222;
+}
+
+.requirementHeader {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 10px 12px 10px 14px;
+  border: 0;
+  background: transparent;
+  color: #000;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.requirementHeader:hover {
+  background: #d4d0c8;
+}
+
+.requirementHeaderMain {
+  display: flex;
+  min-width: 0;
+  gap: 8px;
+}
+
+.chevron {
+  flex: 0 0 auto;
+  transition: transform 120ms linear;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.requirementName {
+  display: block;
+  font-weight: 700;
+}
+
+.requirementDescription {
+  display: block;
+  margin-top: 3px;
+  color: #404040;
+  line-height: 1.4;
+}
+
+.countBadge {
+  min-width: 23px;
+  padding: 2px 5px;
+  background: #fff;
+  border-top: 1px solid #808080;
+  border-left: 1px solid #808080;
+  border-right: 1px solid #fff;
+  border-bottom: 1px solid #fff;
+  text-align: center;
+  font-weight: 700;
+}
+
+.requirementBody {
+  margin: 0 8px 8px;
+  background: #fff;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  box-shadow: inset 1px 1px #000;
+}
+
+.requirementItem {
+  padding: 12px;
+}
+
+.requirementItem+.requirementItem {
+  border-top: 1px solid #808080;
+}
+
+.requirementItemHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.requirementItemTitle {
+  font-weight: 700;
+}
+
+.importance {
+  display: block;
+  margin-top: 3px;
+  color: #606060;
+  text-transform: capitalize;
+}
+
+.matchLabel {
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  border: 1px solid #808080;
+  background: #e8e8e8;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.matchStrong {
+  color: #006000;
+}
+
+.matchPartial {
+  color: #805800;
+}
+
+.matchMissing {
+  color: #900000;
+}
+
+.evidence {
+  margin: 9px 0 0;
+  padding-left: 18px;
+  line-height: 1.5;
+}
+
+.emptyMessage {
+  padding: 14px;
+  color: #606060;
+}
+
+.resumeToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.button {
+  display: inline-flex;
+  min-height: 27px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--win98-face);
+  border-top: 2px solid var(--win98-light);
+  border-left: 2px solid var(--win98-light);
+  border-right: 2px solid var(--win98-dark);
+  border-bottom: 2px solid var(--win98-dark);
+  box-shadow:
+    inset -1px -1px var(--win98-mid),
+    inset 1px 1px #dfdfdf;
+  color: #000;
+  font: inherit;
+  cursor: pointer;
+}
+
+.button:active {
+  padding: 5px 11px 3px 13px;
+  border-top-color: var(--win98-dark);
+  border-left-color: var(--win98-dark);
+  border-right-color: var(--win98-light);
+  border-bottom-color: var(--win98-light);
+  box-shadow: inset 1px 1px var(--win98-mid);
+}
+
+.button:disabled {
+  color: #808080;
+  cursor: default;
+}
+
+.primaryButton {
+  outline: 1px dotted #000;
+  outline-offset: -5px;
+  font-weight: 700;
+}
+
+.previewFrame {
+  padding: 3px;
+  background: #808080;
+  border-top: 2px solid #000;
+  border-left: 2px solid #000;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+}
+
+.errorBox {
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: #ffffe1;
+  border: 1px solid #800000;
+  color: #800000;
+}
+
+.unsupported {
+  margin-top: 14px;
+}
+
+.unsupportedList {
+  background: #fff;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+}
+
+.unsupportedItem {
+  padding: 10px;
+}
+
+.unsupportedItem+.unsupportedItem {
+  border-top: 1px solid #808080;
+}
+
+.unsupportedClaim {
+  margin: 0;
+  color: #800000;
+  font-weight: 700;
+}
+
+.unsupportedReason {
+  margin: 4px 0 0;
+  color: #404040;
+  line-height: 1.45;
+}
+
+.pending {
+  max-width: 650px;
+  padding: 12px;
+}
+
+.generateArea {
+  max-width: 680px;
+}
+
+.editor {
+  background: var(--win98-face);
+}
+
+.editorHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+  background: #000080;
+  color: #fff;
+}
+
+.editorTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.editorSubtitle {
+  margin: 3px 0 0;
+  color: #d8d8d8;
+}
+
+.editorActions {
+  display: flex;
+  gap: 6px;
+}
+
+.editorBody {
+  padding: 10px;
+}
+
+.editorMessage {
+  margin-bottom: 10px;
+  padding: 7px 8px;
+  background: #ffffe1;
+  border: 1px solid #808080;
+}
+
+.fieldset {
+  margin: 0 0 12px;
+  padding: 12px 10px 10px;
+  border: 2px groove #fff;
+}
+
+.legend {
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+.fields {
+  display: grid;
+  gap: 10px;
+}
+
+.field {
+  display: block;
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 4px 5px;
+  background: #fff;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  box-shadow: inset 1px 1px #000;
+  color: #000;
+  font: inherit;
+  outline: none;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: 1px dotted #000080;
+  outline-offset: -3px;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.gridTwo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.itemGroup {
+  padding: 10px 0;
+}
+
+.itemGroup+.itemGroup {
+  border-top: 1px solid #808080;
+}
+
+@media (max-width: 700px) {
+  .desktop {
+    width: calc(100% - 12px);
+    padding-top: 6px;
+  }
+
+  .windowBody {
+    padding: 8px;
+  }
+
+  .jobHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nav {
+    justify-content: flex-start;
+  }
+
+  .gridTwo {
+    grid-template-columns: 1fr;
+  }
+}
