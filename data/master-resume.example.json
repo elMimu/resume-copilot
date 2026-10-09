@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.1",
+  "basics": {
+    "name": "",
+    "label": "",
+    "email": "",
+    "phone": null,
+    "location": "",
+    "linkedin": null,
+    "github": null,
+    "portfolio": null,
+    "summary": ""
+  },
+  "career": {
+    "objective": "",
+    "targetRoles": [],
+    "interests": []
+  },
+  "work": [],
+  "education": [],
+  "projects": [],
+  "skills": [],
+  "computerScience": {
+    "fundamentals": []
+  },
+  "languages": [],
+  "awards": []
+}
