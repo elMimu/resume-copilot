@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { MasterResumeAiActions } from "@/components/master-resume-ai-actions";
+
 import { Win98Icon } from "@/components/win98-icon";
+
 import type {
   MasterAchievement,
   MasterEducation,
@@ -12,6 +15,7 @@ import type {
   MasterSkill,
   MasterWork,
 } from "@/schemas/master-resume";
+
 import styles from "@/styles/win98.module.css";
 
 type MasterResumeSource = "master" | "example";
@@ -55,6 +59,7 @@ export default function MasterResumePage() {
         }
 
         setResume(data.resume);
+
         setSource(data.source);
       } catch (error) {
         setError(
@@ -101,6 +106,7 @@ export default function MasterResumePage() {
       }
 
       setResume(data.resume);
+
       setSource("master");
 
       setMessage("Master resume saved.");
@@ -142,23 +148,32 @@ export default function MasterResumePage() {
           </div>
 
           <div className={styles.windowBody}>
-            <div className="mb-3 flex items-center justify-between gap-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <Link href="/" className={styles.backLink}>
                 <Win98Icon name="back" />
                 Applications
               </Link>
 
               {resume && (
-                <button
-                  type="button"
-                  onClick={saveResume}
-                  disabled={isSaving}
-                  className={`${styles.button} ${styles.primaryButton}`}
-                >
-                  <Win98Icon name="save" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <MasterResumeAiActions
+                    resume={resume}
+                    onResumeChange={setResume}
+                    onMessage={setMessage}
+                    onError={setError}
+                  />
 
-                  {isSaving ? "Saving..." : "Save master resume"}
-                </button>
+                  <button
+                    type="button"
+                    onClick={saveResume}
+                    disabled={isSaving}
+                    className={`${styles.button} ${styles.primaryButton}`}
+                  >
+                    <Win98Icon name="save" />
+
+                    {isSaving ? "Saving..." : "Save master resume"}
+                  </button>
+                </div>
               )}
             </div>
 
@@ -238,6 +253,7 @@ function BasicsEditor({
   onChange,
 }: {
   resume: MasterResume;
+
   onChange: (resume: MasterResume) => void;
 }) {
   function updateBasics(patch: Partial<MasterResume["basics"]>) {
@@ -390,6 +406,7 @@ function CareerEditor({
   onChange,
 }: {
   resume: MasterResume;
+
   onChange: (resume: MasterResume) => void;
 }) {
   function updateCareer(patch: Partial<MasterResume["career"]>) {
@@ -461,6 +478,7 @@ function ExperienceEditor({
   onChange,
 }: {
   resume: MasterResume;
+
   onChange: (resume: MasterResume) => void;
 }) {
   function updateWork(work: MasterWork[]) {
@@ -475,21 +493,35 @@ function ExperienceEditor({
       ...resume.work,
       {
         id: crypto.randomUUID(),
+
         company: "",
+
         role: "",
+
         location: null,
+
         startDate: null,
+
         endDate: null,
+
         summary: "",
+
         technologies: [],
+
         skills: [],
+
         achievements: [],
+
         responsibilities: [],
       },
     ]);
   }
 
-  function updateExperience(index: number, patch: Partial<MasterWork>) {
+  function updateExperience(
+    index: number,
+
+    patch: Partial<MasterWork>,
+  ) {
     updateWork(
       resume.work.map((experience, currentIndex) =>
         currentIndex === index
@@ -518,6 +550,7 @@ function ExperienceEditor({
 
   function updateAchievements(
     experienceIndex: number,
+
     achievements: MasterAchievement[],
   ) {
     updateExperience(experienceIndex, {
@@ -536,9 +569,13 @@ function ExperienceEditor({
       ...experience.achievements,
       {
         id: crypto.randomUUID(),
+
         text: "",
+
         technologies: [],
+
         skills: [],
+
         evidenceStrength: "strong",
       },
     ]);
@@ -546,7 +583,9 @@ function ExperienceEditor({
 
   function updateAchievement(
     experienceIndex: number,
+
     achievementIndex: number,
+
     patch: Partial<MasterAchievement>,
   ) {
     const experience = resume.work[experienceIndex];
@@ -557,6 +596,7 @@ function ExperienceEditor({
 
     updateAchievements(
       experienceIndex,
+
       experience.achievements.map((achievement, currentIndex) =>
         currentIndex === achievementIndex
           ? {
@@ -570,6 +610,7 @@ function ExperienceEditor({
 
   function removeAchievement(
     experienceIndex: number,
+
     achievementIndex: number,
   ) {
     const experience = resume.work[experienceIndex];
@@ -580,6 +621,7 @@ function ExperienceEditor({
 
     updateAchievements(
       experienceIndex,
+
       experience.achievements.filter(
         (_, currentIndex) => currentIndex !== achievementIndex,
       ),
@@ -747,9 +789,15 @@ function ExperienceEditor({
                             <textarea
                               value={achievement.text}
                               onChange={(event) =>
-                                updateAchievement(index, achievementIndex, {
-                                  text: event.target.value,
-                                })
+                                updateAchievement(
+                                  index,
+
+                                  achievementIndex,
+
+                                  {
+                                    text: event.target.value,
+                                  },
+                                )
                               }
                               rows={4}
                               className={styles.textarea}
@@ -761,10 +809,16 @@ function ExperienceEditor({
                               <select
                                 value={achievement.evidenceStrength}
                                 onChange={(event) =>
-                                  updateAchievement(index, achievementIndex, {
-                                    evidenceStrength: event.target
-                                      .value as MasterAchievement["evidenceStrength"],
-                                  })
+                                  updateAchievement(
+                                    index,
+
+                                    achievementIndex,
+
+                                    {
+                                      evidenceStrength: event.target
+                                        .value as MasterAchievement["evidenceStrength"],
+                                    },
+                                  )
                                 }
                                 className={styles.input}
                               >
@@ -780,9 +834,15 @@ function ExperienceEditor({
                               <input
                                 value={achievement.id}
                                 onChange={(event) =>
-                                  updateAchievement(index, achievementIndex, {
-                                    id: event.target.value,
-                                  })
+                                  updateAchievement(
+                                    index,
+
+                                    achievementIndex,
+
+                                    {
+                                      id: event.target.value,
+                                    },
+                                  )
                                 }
                                 className={styles.input}
                               />
@@ -794,9 +854,15 @@ function ExperienceEditor({
                             items={achievement.technologies}
                             addLabel="Add technology"
                             onChange={(technologies) =>
-                              updateAchievement(index, achievementIndex, {
-                                technologies,
-                              })
+                              updateAchievement(
+                                index,
+
+                                achievementIndex,
+
+                                {
+                                  technologies,
+                                },
+                              )
                             }
                           />
 
@@ -805,9 +871,15 @@ function ExperienceEditor({
                             items={achievement.skills}
                             addLabel="Add skill"
                             onChange={(skills) =>
-                              updateAchievement(index, achievementIndex, {
-                                skills,
-                              })
+                              updateAchievement(
+                                index,
+
+                                achievementIndex,
+
+                                {
+                                  skills,
+                                },
+                              )
                             }
                           />
 
@@ -815,7 +887,11 @@ function ExperienceEditor({
                             <button
                               type="button"
                               onClick={() =>
-                                removeAchievement(index, achievementIndex)
+                                removeAchievement(
+                                  index,
+
+                                  achievementIndex,
+                                )
                               }
                               className={styles.button}
                             >
@@ -871,6 +947,7 @@ function EducationEditor({
   onChange,
 }: {
   resume: MasterResume;
+
   onChange: (resume: MasterResume) => void;
 }) {
   function updateEducation(education: MasterEducation[]) {
@@ -895,6 +972,7 @@ function EducationEditor({
 
   function updateEducationEntry(
     index: number,
+
     patch: Partial<MasterEducation>,
   ) {
     updateEducation(
@@ -1037,6 +1115,7 @@ function ProjectsEditor({
   onChange,
 }: {
   resume: MasterResume;
+
   onChange: (resume: MasterResume) => void;
 }) {
   function updateProjects(projects: MasterProject[]) {
@@ -1051,16 +1130,25 @@ function ProjectsEditor({
       ...resume.projects,
       {
         id: crypto.randomUUID(),
+
         name: "",
+
         description: "",
+
         technologies: [],
+
         skills: [],
+
         highlights: [],
       },
     ]);
   }
 
-  function updateProject(index: number, patch: Partial<MasterProject>) {
+  function updateProject(
+    index: number,
+
+    patch: Partial<MasterProject>,
+  ) {
     updateProjects(
       resume.projects.map((project, currentIndex) =>
         currentIndex === index
@@ -1213,10 +1301,12 @@ function SkillsEditor({
   onChange,
 }: {
   resume: MasterResume;
+
   onChange: (resume: MasterResume) => void;
 }) {
   const categories = useMemo(
     () => Array.from(new Set(resume.skills.map((skill) => skill.category))),
+
     [resume.skills],
   );
 
@@ -1261,7 +1351,11 @@ function SkillsEditor({
     ]);
   }
 
-  function updateSkill(index: number, patch: Partial<MasterSkill>) {
+  function updateSkill(
+    index: number,
+
+    patch: Partial<MasterSkill>,
+  ) {
     updateSkills(
       resume.skills.map((skill, currentIndex) =>
         currentIndex === index
@@ -1336,9 +1430,13 @@ function SkillsEditor({
                           <input
                             value={skill.name}
                             onChange={(event) =>
-                              updateSkill(index, {
-                                name: event.target.value,
-                              })
+                              updateSkill(
+                                index,
+
+                                {
+                                  name: event.target.value,
+                                },
+                              )
                             }
                             className={styles.input}
                           />
@@ -1359,9 +1457,13 @@ function SkillsEditor({
                       <textarea
                         value={skill.evidence.join("\n")}
                         onChange={(event) =>
-                          updateSkill(index, {
-                            evidence: splitLines(event.target.value),
-                          })
+                          updateSkill(
+                            index,
+
+                            {
+                              evidence: splitLines(event.target.value),
+                            },
+                          )
                         }
                         rows={3}
                         className={styles.textarea}
@@ -1409,6 +1511,7 @@ function ComputerScienceEditor({
   onChange,
 }: {
   resume: MasterResume;
+
   onChange: (resume: MasterResume) => void;
 }) {
   function updateFundamentals(fundamentals: string[]) {
@@ -1417,6 +1520,7 @@ function ComputerScienceEditor({
 
       computerScience: {
         ...resume.computerScience,
+
         fundamentals,
       },
     });
@@ -1446,6 +1550,7 @@ function LanguagesEditor({
   onChange,
 }: {
   resume: MasterResume;
+
   onChange: (resume: MasterResume) => void;
 }) {
   function updateLanguages(languages: MasterResume["languages"]) {
@@ -1473,6 +1578,7 @@ function LanguagesEditor({
 
   function updateLanguage(
     index: number,
+
     patch: Partial<MasterResume["languages"][number]>,
   ) {
     updateLanguages(
@@ -1512,9 +1618,13 @@ function LanguagesEditor({
                     <input
                       value={language.language}
                       onChange={(event) =>
-                        updateLanguage(index, {
-                          language: event.target.value,
-                        })
+                        updateLanguage(
+                          index,
+
+                          {
+                            language: event.target.value,
+                          },
+                        )
                       }
                       className={styles.input}
                     />
@@ -1524,9 +1634,13 @@ function LanguagesEditor({
                     <input
                       value={language.level}
                       onChange={(event) =>
-                        updateLanguage(index, {
-                          level: event.target.value,
-                        })
+                        updateLanguage(
+                          index,
+
+                          {
+                            level: event.target.value,
+                          },
+                        )
                       }
                       className={styles.input}
                     />
@@ -1565,6 +1679,7 @@ function AwardsEditor({
   onChange,
 }: {
   resume: MasterResume;
+
   onChange: (resume: MasterResume) => void;
 }) {
   function updateAwards(awards: string[]) {
@@ -1600,8 +1715,11 @@ function StringListEditor({
   onChange,
 }: {
   title: string;
+
   items: string[];
+
   addLabel: string;
+
   onChange: (items: string[]) => void;
 }) {
   function addItem() {
@@ -1635,7 +1753,13 @@ function StringListEditor({
               <Field label={`Item ${index + 1}`}>
                 <input
                   value={item}
-                  onChange={(event) => updateItem(index, event.target.value)}
+                  onChange={(event) =>
+                    updateItem(
+                      index,
+
+                      event.target.value,
+                    )
+                  }
                   className={styles.input}
                 />
               </Field>
@@ -1685,6 +1809,7 @@ function Field({
   children,
 }: {
   label: string;
+
   children: React.ReactNode;
 }) {
   return (
