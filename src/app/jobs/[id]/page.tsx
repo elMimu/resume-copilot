@@ -2,22 +2,21 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useLiveQuery } from "dexie-react-hooks";
-import type { JobResult } from "@/schemas/job-result";
-import { JobResultImport } from "@/components/job-result-import";
-
-import { db } from "@/db/databse";
-
-import type { z } from "zod";
-
-import { resumeSchema } from "@/schemas/job-result";
 import { useState } from "react";
-import { saveJobResult } from "@/db/job-results";
 
-type Resume = z.infer<typeof resumeSchema>;
+import { useLiveQuery } from "dexie-react-hooks";
+
+import { JobResultImport } from "@/components/job-result-import";
+import { ResumePreview } from "@/components/resume-preview";
+import { db } from "@/db/databse";
+import { saveJobResult } from "@/db/job-results";
+import type { JobResult, GeneratedJobPayload } from "@/schemas/job-result";
+
+type Resume = GeneratedJobPayload["enhanced"];
 
 export default function JobPage() {
   const params = useParams<{ id: string }>();
+
   const jobId = params.id;
 
   const job = useLiveQuery(() => db.jobs.get(jobId), [jobId]);
@@ -25,7 +24,9 @@ export default function JobPage() {
   const result = useLiveQuery(() => db.jobResults.get(jobId), [jobId]);
 
   const [isGenerating, setIsGenerating] = useState(false);
+
   const [generationError, setGenerationError] = useState<string | null>(null);
+
   async function generateResume() {
     if (!job) {
       return;
@@ -51,12 +52,12 @@ export default function JobPage() {
       const data: unknown = await response.json();
 
       if (!response.ok) {
-        const error =
+        const message =
           typeof data === "object" && data !== null && "error" in data
             ? String(data.error)
             : "Resume generation failed.";
 
-        throw new Error(error);
+        throw new Error(message);
       }
 
       await saveJobResult(job.id, data);
@@ -88,7 +89,9 @@ export default function JobPage() {
 
         <div className="mt-2 flex gap-3 text-sm text-gray-500">
           <span>{job.company}</span>
+
           <span>•</span>
+
           <span>{job.status}</span>
         </div>
       </header>
@@ -100,17 +103,20 @@ export default function JobPage() {
           <dl className="mt-4 space-y-4 text-sm">
             <div>
               <dt className="text-gray-500">Company</dt>
+
               <dd>{job.company}</dd>
             </div>
 
             <div>
               <dt className="text-gray-500">Status</dt>
+
               <dd>{job.status}</dd>
             </div>
 
             {job.url && (
               <div>
                 <dt className="text-gray-500">Original job</dt>
+
                 <dd>
                   <a
                     href={job.url}
@@ -161,7 +167,7 @@ function PendingGeneration() {
       <h2 className="font-semibold">Resume not generated yet</h2>
 
       <p className="mt-2 text-sm text-gray-500">
-        Generate the Resume Copilot payload with Codex and import it here.
+        Generate a tailored resume using the local Codex integration.
       </p>
     </div>
   );
@@ -171,7 +177,7 @@ function GeneratedResult({ result }: { result: JobResult }) {
   return (
     <div className="space-y-10">
       <section>
-        <div className="flex items-end justify-between">
+        <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-sm text-gray-500">Match</p>
 
@@ -192,8 +198,14 @@ function GeneratedResult({ result }: { result: JobResult }) {
         <div className="mt-4 space-y-3">
           {result.analysis.requirements.map((requirement) => (
             <div key={requirement.name} className="rounded border p-4">
-              <div className="flex items-center justify-between">
-                <p className="font-medium">{requirement.name}</p>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-medium">{requirement.name}</p>
+
+                  <p className="mt-1 text-xs text-gray-500">
+                    {requirement.importance}
+                  </p>
+                </div>
 
                 <span className="text-sm">{requirement.match}</span>
               </div>
@@ -210,9 +222,31 @@ function GeneratedResult({ result }: { result: JobResult }) {
         </div>
       </section>
 
-      <ResumeSection title="Enhanced Resume" resume={result.enhanced} />
+      {result.analysis.strengths.length > 0 && (
+        <AnalysisList title="Strengths" items={result.analysis.strengths} />
+      )}
 
-      <ResumeSection title="Glossed Resume" resume={result.glossed} />
+      {result.analysis.gaps.length > 0 && (
+        <AnalysisList title="Gaps" items={result.analysis.gaps} />
+      )}
+
+      <section>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold">Enhanced Resume</h2>
+
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="rounded bg-black px-4 py-2 text-sm text-white"
+          >
+            Print / Save PDF
+          </button>
+        </div>
+
+        <ResumePreview resume={result.enhanced} />
+      </section>
+
+      <ResumeSummary title="Glossed Resume" resume={result.glossed} />
 
       {result.glossed.unsupportedClaims.length > 0 && (
         <section>
@@ -222,6 +256,7 @@ function GeneratedResult({ result }: { result: JobResult }) {
             {result.glossed.unsupportedClaims.map((item) => (
               <div key={item.claim} className="rounded border p-4">
                 <p className="font-medium">{item.claim}</p>
+
                 <p className="mt-1 text-sm text-gray-500">{item.reason}</p>
               </div>
             ))}
@@ -232,7 +267,21 @@ function GeneratedResult({ result }: { result: JobResult }) {
   );
 }
 
-function ResumeSection({ title, resume }: { title: string; resume: Resume }) {
+function AnalysisList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <section>
+      <h2 className="text-lg font-semibold">{title}</h2>
+
+      <ul className="mt-4 list-disc space-y-2 pl-5 text-sm">
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function ResumeSummary({ title, resume }: { title: string; resume: Resume }) {
   return (
     <section>
       <h2 className="text-lg font-semibold">{title}</h2>
@@ -242,30 +291,95 @@ function ResumeSection({ title, resume }: { title: string; resume: Resume }) {
 
         <p className="mt-3 text-sm leading-6">{resume.summary}</p>
 
-        <div className="mt-6">
-          <h4 className="font-semibold">Skills</h4>
+        {resume.skills.length > 0 && (
+          <div className="mt-6">
+            <h4 className="font-semibold">Skills</h4>
 
-          <p className="mt-2 text-sm">{resume.skills.join(" · ")}</p>
-        </div>
+            <div className="mt-2 space-y-1 text-sm">
+              {resume.skills.map((group) => (
+                <p key={group.category}>
+                  <strong>{group.category}:</strong> {group.items.join(", ")}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
 
-        <div className="mt-6 space-y-6">
-          {resume.experiences.map((experience) => (
-            <article key={`${experience.company}-${experience.role}`}>
-              <h4 className="font-semibold">{experience.role}</h4>
+        {resume.experiences.length > 0 && (
+          <div className="mt-6">
+            <h4 className="font-semibold">Experience</h4>
 
-              <p className="text-sm text-gray-500">
-                {experience.company} · {experience.startDate} –{" "}
-                {experience.endDate}
-              </p>
+            <div className="mt-3 space-y-5">
+              {resume.experiences.map((experience) => (
+                <article
+                  key={`${experience.company}-${experience.role}-${experience.startDate}`}
+                >
+                  <h5 className="font-medium">{experience.role}</h5>
 
-              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm">
-                {experience.bullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
-                ))}
-              </ul>
-            </article>
-          ))}
-        </div>
+                  <p className="text-sm text-gray-500">
+                    {experience.company} · {experience.startDate} –{" "}
+                    {experience.endDate}
+                    {experience.location ? ` · ${experience.location}` : ""}
+                  </p>
+
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+                    {experience.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {resume.education.length > 0 && (
+          <div className="mt-6">
+            <h4 className="font-semibold">Education</h4>
+
+            <div className="mt-3 space-y-3">
+              {resume.education.map((education) => (
+                <article key={`${education.institution}-${education.degree}`}>
+                  <p className="font-medium">{education.institution}</p>
+
+                  <p className="text-sm text-gray-500">
+                    {education.degree}
+
+                    {education.status ? ` · ${education.status}` : ""}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {resume.projects.length > 0 && (
+          <div className="mt-6">
+            <h4 className="font-semibold">Projects</h4>
+
+            <div className="mt-3 space-y-3">
+              {resume.projects.map((project) => (
+                <article key={project.name}>
+                  <p className="font-medium">{project.name}</p>
+
+                  <p className="text-sm text-gray-600">{project.description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {resume.languages.length > 0 && (
+          <div className="mt-6">
+            <h4 className="font-semibold">Languages</h4>
+
+            <p className="mt-2 text-sm">
+              {resume.languages
+                .map(({ language, level }) => `${language}: ${level}`)
+                .join(" | ")}
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

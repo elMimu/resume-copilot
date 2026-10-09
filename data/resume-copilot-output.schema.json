@@ -1,0 +1,449 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "job", "analysis", "enhanced", "glossed"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1.2"]
+    },
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["company", "title", "url", "description", "language"],
+      "properties": {
+        "company": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string",
+          "enum": ["pt-BR", "en"]
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "matchScore",
+        "requirements",
+        "strengths",
+        "gaps",
+        "keywords"
+      ],
+      "properties": {
+        "matchScore": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/requirement"
+          }
+        },
+        "strengths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "enhanced": {
+      "$ref": "#/$defs/resume"
+    },
+    "glossed": {
+      "$ref": "#/$defs/glossedResume"
+    }
+  },
+  "$defs": {
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "importance", "match", "evidence"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "importance": {
+          "type": "string",
+          "enum": ["required", "preferred", "inferred"]
+        },
+        "match": {
+          "type": "string",
+          "enum": ["strong", "partial", "missing"]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "resumeBasics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "email",
+        "phone",
+        "location",
+        "linkedin",
+        "github",
+        "portfolio"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "location": {
+          "type": "string"
+        },
+        "linkedin": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "github": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "portfolio": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "skillGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "items"],
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "language": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "level"],
+      "properties": {
+        "language": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string"
+        }
+      }
+    },
+    "experience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "company",
+        "role",
+        "location",
+        "startDate",
+        "endDate",
+        "bullets"
+      ],
+      "properties": {
+        "company": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "startDate": {
+          "type": "string"
+        },
+        "endDate": {
+          "type": "string"
+        },
+        "bullets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "education": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["institution", "degree", "startDate", "endDate", "status"],
+      "properties": {
+        "institution": {
+          "type": "string"
+        },
+        "degree": {
+          "type": "string"
+        },
+        "startDate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "endDate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description", "technologies"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "technologies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "unsupportedClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim", "reason"],
+      "properties": {
+        "claim": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "resume": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basics",
+        "headline",
+        "summary",
+        "skills",
+        "experiences",
+        "education",
+        "projects",
+        "languages"
+      ],
+      "properties": {
+        "basics": {
+          "$ref": "#/$defs/resumeBasics"
+        },
+        "headline": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/skillGroup"
+          }
+        },
+        "experiences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/experience"
+          }
+        },
+        "education": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/education"
+          }
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/project"
+          }
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/language"
+          }
+        }
+      }
+    },
+    "glossedResume": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basics",
+        "headline",
+        "summary",
+        "skills",
+        "experiences",
+        "education",
+        "projects",
+        "languages",
+        "unsupportedClaims"
+      ],
+      "properties": {
+        "basics": {
+          "$ref": "#/$defs/resumeBasics"
+        },
+        "headline": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/skillGroup"
+          }
+        },
+        "experiences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/experience"
+          }
+        },
+        "education": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/education"
+          }
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/project"
+          }
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/language"
+          }
+        },
+        "unsupportedClaims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/unsupportedClaim"
+          }
+        }
+      }
+    }
+  }
+}
