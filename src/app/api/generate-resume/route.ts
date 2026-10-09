@@ -1,30 +1,47 @@
 import { spawn } from "node:child_process";
+
 import { readFile } from "node:fs/promises";
+
 import path from "node:path";
 
 import { NextResponse } from "next/server";
+
 import { z } from "zod";
 
 import { generatedJobPayloadSchema } from "@/schemas/job-result";
 
+import { resumeLanguageSchema, type ResumeLanguage } from "@/schemas/job";
+
 export const runtime = "nodejs";
+
 export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
   company: z.string().min(1),
+
   title: z.string().min(1),
+
   description: z.string().min(1),
+
   url: z.string().nullable().optional(),
+
+  resumeLanguage: resumeLanguageSchema.optional().default("en"),
 });
 
 type MasterResume = {
   basics?: {
     name: string;
+
     email: string;
+
     phone: string | null;
+
     location: string;
+
     linkedin: string | null;
+
     github: string | null;
+
     portfolio: string | null;
   };
 
@@ -56,21 +73,29 @@ export async function POST(request: Request) {
 
     const prompt = buildPrompt({
       masterResumeContent,
+
       company: input.company,
+
       title: input.title,
+
       description: input.description,
+
       url: input.url ?? null,
+
+      resumeLanguage: input.resumeLanguage,
     });
 
     const output = await runCodex(prompt, schemaPath);
 
     const json = JSON.parse(output) as {
       enhanced?: Record<string, unknown>;
+
       glossed?: Record<string, unknown>;
+
       [key: string]: unknown;
     };
 
-    normalizeFactualFields(json, masterResume);
+    normalizeFactualFields(json, masterResume, input.resumeLanguage);
 
     const result = generatedJobPayloadSchema.parse(json);
 
@@ -82,6 +107,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "Invalid input or generated payload.",
+
           issues: error.issues,
         },
         {
@@ -105,12 +131,20 @@ export async function POST(request: Request) {
 function normalizeFactualFields(
   json: {
     enhanced?: Record<string, unknown>;
+
     glossed?: Record<string, unknown>;
+
     [key: string]: unknown;
   },
+
   masterResume: MasterResume,
+
+  resumeLanguage: ResumeLanguage,
 ) {
-  const languages = masterResume.languages ?? [];
+  const languages = localizeLanguages(
+    masterResume.languages ?? [],
+    resumeLanguage,
+  );
 
   if (json.enhanced) {
     if (masterResume.basics) {
@@ -129,19 +163,104 @@ function normalizeFactualFields(
   }
 }
 
+function localizeLanguages(
+  languages: Array<{
+    language: string;
+    level: string;
+  }>,
+  target: ResumeLanguage,
+) {
+  return languages.map(({ language, level }) => ({
+    language: localizeLanguageName(language, target),
+
+    level: localizeLanguageLevel(level, target),
+  }));
+}
+
+function localizeLanguageName(value: string, target: ResumeLanguage) {
+  const normalized = value.trim().toLowerCase();
+
+  if (target === "pt-BR") {
+    const values: Record<string, string> = {
+      english: "Inglês",
+      portuguese: "Português",
+      spanish: "Espanhol",
+      french: "Francês",
+      german: "Alemão",
+    };
+
+    return values[normalized] ?? value;
+  }
+
+  const values: Record<string, string> = {
+    inglês: "English",
+    ingles: "English",
+    português: "Portuguese",
+    portugues: "Portuguese",
+    espanhol: "Spanish",
+    francês: "French",
+    frances: "French",
+    alemão: "German",
+    alemao: "German",
+  };
+
+  return values[normalized] ?? value;
+}
+
+function localizeLanguageLevel(value: string, target: ResumeLanguage) {
+  const normalized = value.trim().toLowerCase();
+
+  if (target === "pt-BR") {
+    const values: Record<string, string> = {
+      native: "Nativo",
+      fluent: "Fluente",
+      advanced: "Avançado",
+      intermediate: "Intermediário",
+      basic: "Básico",
+      beginner: "Iniciante",
+    };
+
+    return values[normalized] ?? value;
+  }
+
+  const values: Record<string, string> = {
+    nativo: "Native",
+    fluente: "Fluent",
+    avançado: "Advanced",
+    avancado: "Advanced",
+    intermediário: "Intermediate",
+    intermediario: "Intermediate",
+    básico: "Basic",
+    basico: "Basic",
+    iniciante: "Beginner",
+  };
+
+  return values[normalized] ?? value;
+}
+
 function buildPrompt({
   masterResumeContent,
   company,
   title,
   description,
   url,
+  resumeLanguage,
 }: {
   masterResumeContent: string;
+
   company: string;
+
   title: string;
+
   description: string;
+
   url: string | null;
+
+  resumeLanguage: ResumeLanguage;
 }) {
+  const outputLanguage =
+    resumeLanguage === "pt-BR" ? "Brazilian Portuguese" : "English";
+
   return `
 You are generating a tailored resume from a factual master resume.
 
@@ -155,6 +274,9 @@ URL: ${url ?? "N/A"}
 
 === JOB DESCRIPTION ===
 ${description}
+
+=== TARGET RESUME LANGUAGE ===
+${outputLanguage}
 
 Generate a Resume Copilot payload using schema version 1.2.
 
@@ -231,7 +353,25 @@ Examples:
 
 18. Any unsupported claim in glossed must be included in unsupportedClaims.
 
-19. Return only the structured JSON result.
+19. Write the enhanced resume entirely in ${outputLanguage}.
+
+20. Write the glossed resume entirely in ${outputLanguage}.
+
+21. The language rule applies to user-facing resume prose and labels.
+    Do not translate:
+    - company names;
+    - institution names;
+    - project names unless the master resume already contains a translated name;
+    - technology names;
+    - URLs;
+    - email addresses;
+    - factual identifiers.
+
+22. Preserve the factual meaning of job titles and degrees while expressing them naturally in ${outputLanguage} when appropriate.
+
+23. The analysis section may remain in English.
+
+24. Return only the structured JSON result.
 
 Before producing the result, internally compare every job requirement against the complete master resume.
 `.trim();
@@ -244,6 +384,7 @@ function runCodex(prompt: string, schemaPath: string): Promise<string> {
       ["exec", "--sandbox", "read-only", "--output-schema", schemaPath, "-"],
       {
         cwd: process.cwd(),
+
         stdio: ["pipe", "pipe", "pipe"],
       },
     );
@@ -284,6 +425,7 @@ function runCodex(prompt: string, schemaPath: string): Promise<string> {
     });
 
     child.stdin.write(prompt);
+
     child.stdin.end();
   });
 }

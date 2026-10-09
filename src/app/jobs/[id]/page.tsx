@@ -10,7 +10,7 @@ import { JobResultImport } from "@/components/job-result-import";
 import { ResumeEditor } from "@/components/resume-editor";
 import { ResumePreview } from "@/components/resume-preview";
 import { Win98Icon } from "@/components/win98-icon";
-import { db } from "@/db/databse";
+import { db } from "@/db/database";
 import { saveJobResult } from "@/db/job-results";
 import { exportResumeDocx, exportResumePdf } from "@/app/lib/resume-export";
 import type { JobResult } from "@/schemas/job-result";

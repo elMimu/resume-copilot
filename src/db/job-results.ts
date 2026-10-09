@@ -1,4 +1,4 @@
-import { db } from "./databse";
+import { db } from "./database";
 
 import {
   generatedJobPayloadSchema,
@@ -13,10 +13,14 @@ export async function saveJobResult(
 ): Promise<JobResult> {
   const payload = generatedJobPayloadSchema.parse(input);
 
+  const now = new Date().toISOString();
+
   const result = jobResultSchema.parse({
     ...payload,
+
     jobId,
-    generatedAt: new Date().toISOString(),
+
+    generatedAt: now,
   });
 
   await db.transaction("rw", db.jobs, db.jobResults, async () => {
@@ -30,7 +34,14 @@ export async function saveJobResult(
 
     await db.jobs.update(jobId, {
       status: "ready",
-      updatedAt: new Date().toISOString(),
+
+      generationStatus: "ready",
+
+      generationError: null,
+
+      generationCompletedAt: now,
+
+      updatedAt: now,
     });
   });
 
