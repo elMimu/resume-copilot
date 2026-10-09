@@ -3,6 +3,7 @@ import { db } from "./databse";
 import {
   generatedJobPayloadSchema,
   jobResultSchema,
+  resumeSchema,
   type JobResult,
 } from "@/schemas/job-result";
 
@@ -34,4 +35,26 @@ export async function saveJobResult(
   });
 
   return result;
+}
+
+export async function updateEnhancedResume(
+  jobId: string,
+  input: unknown,
+): Promise<JobResult> {
+  const enhanced = resumeSchema.parse(input);
+
+  const current = await db.jobResults.get(jobId);
+
+  if (!current) {
+    throw new Error("Generated resume not found.");
+  }
+
+  const updated = jobResultSchema.parse({
+    ...current,
+    enhanced,
+  });
+
+  await db.jobResults.put(updated);
+
+  return updated;
 }
