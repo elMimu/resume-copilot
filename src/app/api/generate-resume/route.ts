@@ -11,6 +11,7 @@ import { z } from "zod";
 import { generatedJobPayloadSchema } from "@/schemas/job-result";
 
 import { resumeLanguageSchema, type ResumeLanguage } from "@/schemas/job";
+import { localizeLocation } from "@/app/lib/resume-i18n";
 
 export const runtime = "nodejs";
 
@@ -32,6 +33,8 @@ type MasterResume = {
   basics?: {
     name: string;
 
+    label: string;
+
     email: string;
 
     phone: string | null;
@@ -43,6 +46,10 @@ type MasterResume = {
     github: string | null;
 
     portfolio: string | null;
+  };
+
+  career?: {
+    targetRoles?: string[];
   };
 
   languages?: Array<{
@@ -146,21 +153,86 @@ function normalizeFactualFields(
     resumeLanguage,
   );
 
+  const headline = getMasterResumeHeadline(masterResume);
+
   if (json.enhanced) {
     if (masterResume.basics) {
-      json.enhanced.basics = masterResume.basics;
+      json.enhanced.basics = localizeBasics(
+        masterResume.basics,
+        resumeLanguage,
+      );
     }
 
+    json.enhanced.headline = headline;
+
     json.enhanced.languages = languages;
+
+    localizeExperienceLocations(json.enhanced, resumeLanguage);
   }
 
   if (json.glossed) {
     if (masterResume.basics) {
-      json.glossed.basics = masterResume.basics;
+      json.glossed.basics = localizeBasics(masterResume.basics, resumeLanguage);
     }
 
+    json.glossed.headline = headline;
+
     json.glossed.languages = languages;
+
+    localizeExperienceLocations(json.glossed, resumeLanguage);
   }
+}
+
+function localizeBasics(
+  basics: NonNullable<MasterResume["basics"]>,
+
+  language: ResumeLanguage,
+) {
+  return {
+    ...basics,
+
+    location: localizeLocation(basics.location, language),
+  };
+}
+
+function localizeExperienceLocations(
+  resume: Record<string, unknown>,
+
+  language: ResumeLanguage,
+) {
+  if (!Array.isArray(resume.experiences)) {
+    return;
+  }
+
+  resume.experiences = resume.experiences.map((experience) => {
+    if (typeof experience !== "object" || experience === null) {
+      return experience;
+    }
+
+    const record = experience as Record<string, unknown>;
+
+    if (typeof record.location !== "string") {
+      return record;
+    }
+
+    return {
+      ...record,
+
+      location: localizeLocation(record.location, language),
+    };
+  });
+}
+
+function getMasterResumeHeadline(masterResume: MasterResume) {
+  const targetRole = masterResume.career?.targetRoles
+    ?.find((role) => role.trim().length > 0)
+    ?.trim();
+
+  if (targetRole) {
+    return targetRole;
+  }
+
+  return masterResume.basics?.label?.trim() ?? "";
 }
 
 function localizeLanguages(
@@ -305,12 +377,6 @@ IMPORTANT RULES:
 
 5. Related evidence must count.
 
-Examples:
-- JavaScript and TypeScript experience is relevant evidence for JavaScript/TypeScript requirements.
-- React used in a project is relevant evidence for React.
-- Git evidence is relevant for Git requirements.
-- API integration experience is relevant for API-related requirements.
-
 6. Do not mark an exact technology as strong unless the master resume directly supports it.
 
 7. matchScore must reflect the candidate's factual fit before resume rewriting.
@@ -357,21 +423,27 @@ Examples:
 
 20. Write the glossed resume entirely in ${outputLanguage}.
 
-21. The language rule applies to user-facing resume prose and labels.
-    Do not translate:
-    - company names;
-    - institution names;
-    - project names unless the master resume already contains a translated name;
-    - technology names;
-    - URLs;
-    - email addresses;
-    - factual identifiers.
+21. When the target language is Brazilian Portuguese:
+    - write natural Brazilian Portuguese;
+    - use "Brasil", never "Brazil", in locations;
+    - translate section-related concepts naturally;
+    - translate user-facing skill category names when appropriate;
+    - translate language names and proficiency descriptions;
+    - preserve company names, institution names, technologies, URLs and email addresses.
 
-22. Preserve the factual meaning of job titles and degrees while expressing them naturally in ${outputLanguage} when appropriate.
+22. When the target language is English:
+    - use "Brazil", not "Brasil", in locations;
+    - write user-facing content in natural English.
 
-23. The analysis section may remain in English.
+23. Preserve the factual meaning of job titles and degrees while expressing them naturally in ${outputLanguage} when appropriate.
 
-24. Return only the structured JSON result.
+24. The analysis section may remain in English.
+
+25. The resume headline must contain only the candidate's primary professional role.
+    Do not include skills, technologies, keywords, specializations, separators, or descriptive phrases in the headline.
+    The application will replace this field with the canonical role from the master resume after generation.
+
+26. Return only the structured JSON result.
 
 Before producing the result, internally compare every job requirement against the complete master resume.
 `.trim();

@@ -2,6 +2,10 @@ import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "pdf-lib";
 
 import { AlignmentType, Document, Packer, Paragraph, TextRun } from "docx";
 
+import { getResumeSectionLabels } from "./resume-i18n";
+
+import type { ResumeLanguage } from "@/schemas/job";
+
 import type { GeneratedJobPayload } from "@/schemas/job-result";
 
 type Resume = GeneratedJobPayload["enhanced"];
@@ -26,7 +30,13 @@ type PdfContext = {
   y: number;
 };
 
-export async function exportResumePdf(resume: Resume, fileName?: string) {
+export async function exportResumePdf(
+  resume: Resume,
+  language: ResumeLanguage,
+  fileName?: string,
+) {
+  const labels = getResumeSectionLabels(language);
+
   const document = await PDFDocument.create();
 
   const regular = await document.embedFont(StandardFonts.Helvetica);
@@ -71,7 +81,7 @@ export async function exportResumePdf(resume: Resume, fileName?: string) {
     lineGap: 2,
   });
 
-  drawSectionHeading(context, "SUMMARY");
+  drawSectionHeading(context, labels.summary);
 
   drawWrappedText(context, resume.summary, {
     font: regular,
@@ -80,7 +90,7 @@ export async function exportResumePdf(resume: Resume, fileName?: string) {
   });
 
   if (resume.education.length > 0) {
-    drawSectionHeading(context, "EDUCATION");
+    drawSectionHeading(context, labels.education);
 
     for (const item of resume.education) {
       ensureSpace(context, 38);
@@ -109,7 +119,7 @@ export async function exportResumePdf(resume: Resume, fileName?: string) {
   }
 
   if (resume.experiences.length > 0) {
-    drawSectionHeading(context, "EXPERIENCE");
+    drawSectionHeading(context, labels.experience);
 
     for (const experience of resume.experiences) {
       ensureSpace(context, 60);
@@ -122,7 +132,9 @@ export async function exportResumePdf(resume: Resume, fileName?: string) {
 
       const metadata = [
         experience.company,
+
         formatDateRange(experience.startDate, experience.endDate),
+
         experience.location,
       ]
         .filter(Boolean)
@@ -145,7 +157,7 @@ export async function exportResumePdf(resume: Resume, fileName?: string) {
   }
 
   if (resume.projects.length > 0) {
-    drawSectionHeading(context, "PROJECTS");
+    drawSectionHeading(context, labels.projects);
 
     for (const project of resume.projects) {
       ensureSpace(context, 45);
@@ -169,7 +181,7 @@ export async function exportResumePdf(resume: Resume, fileName?: string) {
   }
 
   if (resume.skills.length > 0) {
-    drawSectionHeading(context, "SKILLS");
+    drawSectionHeading(context, labels.skills);
 
     for (const group of resume.skills) {
       drawWrappedText(context, `${group.category}: ${group.items.join(", ")}`, {
@@ -181,7 +193,7 @@ export async function exportResumePdf(resume: Resume, fileName?: string) {
   }
 
   if (resume.languages.length > 0) {
-    drawSectionHeading(context, "LANGUAGES");
+    drawSectionHeading(context, labels.languages);
 
     drawWrappedText(
       context,
@@ -207,23 +219,34 @@ export async function exportResumePdf(resume: Resume, fileName?: string) {
     new Blob([pdfBuffer], {
       type: "application/pdf",
     }),
+
     fileName ?? buildFileName(resume, "pdf"),
   );
 }
 
-export async function exportResumeDocx(resume: Resume, fileName?: string) {
+export async function exportResumeDocx(
+  resume: Resume,
+  language: ResumeLanguage,
+  fileName?: string,
+) {
+  const labels = getResumeSectionLabels(language);
+
   const children: Paragraph[] = [];
 
   children.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
+
       spacing: {
         after: 120,
       },
+
       children: [
         new TextRun({
           text: `${resume.basics.name} | ${resume.headline}`,
+
           bold: true,
+
           size: 30,
         }),
       ],
@@ -233,33 +256,41 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
   children.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
+
       spacing: {
         after: 220,
       },
+
       children: [
         new TextRun({
           text: [
             resume.basics.location,
+
             resume.basics.email,
+
             resume.basics.phone,
+
             resume.basics.linkedin,
+
             resume.basics.github,
+
             resume.basics.portfolio,
           ]
             .filter(Boolean)
             .join(" | "),
+
           size: 18,
         }),
       ],
     }),
   );
 
-  children.push(sectionTitle("SUMMARY"));
+  children.push(sectionTitle(labels.summary));
 
   children.push(bodyParagraph(resume.summary));
 
   if (resume.education.length > 0) {
-    children.push(sectionTitle("EDUCATION"));
+    children.push(sectionTitle(labels.education));
 
     for (const item of resume.education) {
       children.push(
@@ -267,10 +298,13 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
           spacing: {
             after: 40,
           },
+
           children: [
             new TextRun({
               text: item.institution,
+
               bold: true,
+
               size: 19,
             }),
           ],
@@ -282,15 +316,19 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
           spacing: {
             after: 100,
           },
+
           children: [
             new TextRun({
               text: [
                 item.degree,
+
                 item.status ?? formatDateRange(item.startDate, item.endDate),
               ]
                 .filter(Boolean)
                 .join(" | "),
+
               italics: true,
+
               size: 18,
             }),
           ],
@@ -300,7 +338,7 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
   }
 
   if (resume.experiences.length > 0) {
-    children.push(sectionTitle("EXPERIENCE"));
+    children.push(sectionTitle(labels.experience));
 
     for (const experience of resume.experiences) {
       children.push(
@@ -308,10 +346,13 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
           spacing: {
             after: 30,
           },
+
           children: [
             new TextRun({
               text: experience.role,
+
               bold: true,
+
               size: 19,
             }),
           ],
@@ -323,16 +364,21 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
           spacing: {
             after: 50,
           },
+
           children: [
             new TextRun({
               text: [
                 experience.company,
+
                 formatDateRange(experience.startDate, experience.endDate),
+
                 experience.location,
               ]
                 .filter(Boolean)
                 .join(" | "),
+
               italics: true,
+
               size: 18,
             }),
           ],
@@ -345,12 +391,15 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
             bullet: {
               level: 0,
             },
+
             spacing: {
               after: 25,
             },
+
             children: [
               new TextRun({
                 text: bullet,
+
                 size: 18,
               }),
             ],
@@ -363,7 +412,7 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
   }
 
   if (resume.projects.length > 0) {
-    children.push(sectionTitle("PROJECTS"));
+    children.push(sectionTitle(labels.projects));
 
     for (const project of resume.projects) {
       children.push(
@@ -371,15 +420,19 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
           spacing: {
             after: 30,
           },
+
           children: [
             new TextRun({
               text: `${project.name} | `,
+
               bold: true,
+
               size: 18,
             }),
 
             new TextRun({
               text: project.description,
+
               size: 18,
             }),
           ],
@@ -392,10 +445,13 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
             spacing: {
               after: 100,
             },
+
             children: [
               new TextRun({
                 text: project.technologies.join(", "),
+
                 italics: true,
+
                 size: 17,
               }),
             ],
@@ -406,7 +462,7 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
   }
 
   if (resume.skills.length > 0) {
-    children.push(sectionTitle("SKILLS"));
+    children.push(sectionTitle(labels.skills));
 
     for (const group of resume.skills) {
       children.push(
@@ -414,15 +470,19 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
           spacing: {
             after: 35,
           },
+
           children: [
             new TextRun({
               text: `${group.category}: `,
+
               bold: true,
+
               size: 18,
             }),
 
             new TextRun({
               text: group.items.join(", "),
+
               size: 18,
             }),
           ],
@@ -432,7 +492,7 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
   }
 
   if (resume.languages.length > 0) {
-    children.push(sectionTitle("LANGUAGES"));
+    children.push(sectionTitle(labels.languages));
 
     children.push(
       bodyParagraph(
@@ -450,8 +510,11 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
           page: {
             margin: {
               top: 720,
+
               right: 900,
+
               bottom: 720,
+
               left: 900,
             },
           },
@@ -464,7 +527,11 @@ export async function exportResumeDocx(resume: Resume, fileName?: string) {
 
   const blob = await Packer.toBlob(document);
 
-  downloadBlob(blob, fileName ?? buildFileName(resume, "docx"));
+  downloadBlob(
+    blob,
+
+    fileName ?? buildFileName(resume, "docx"),
+  );
 }
 
 function drawSectionHeading(context: PdfContext, title: string) {
@@ -474,9 +541,13 @@ function drawSectionHeading(context: PdfContext, title: string) {
 
   context.page.drawText(title, {
     x: PDF_MARGIN_X,
+
     y: context.y,
+
     size: PDF_SECTION_SIZE,
+
     font: context.bold,
+
     color: rgb(0, 0, 0),
   });
 
@@ -487,11 +558,15 @@ function drawSectionHeading(context: PdfContext, title: string) {
       x: PDF_MARGIN_X,
       y: context.y,
     },
+
     end: {
       x: A4_WIDTH - PDF_MARGIN_X,
+
       y: context.y,
     },
+
     thickness: 0.7,
+
     color: rgb(0.15, 0.15, 0.15),
   });
 
@@ -515,8 +590,11 @@ function drawCenteredText(
   if (width <= maxWidth) {
     context.page.drawText(text, {
       x: (A4_WIDTH - width) / 2,
+
       y: context.y,
+
       size: options.size,
+
       font: options.font,
     });
 
@@ -527,8 +605,11 @@ function drawCenteredText(
 
   drawWrappedText(context, text, {
     font: options.font,
+
     size: options.size,
+
     centered: true,
+
     lineGap: 2,
   });
 }
@@ -558,7 +639,11 @@ function drawWrappedText(
     const lineWidth = options.font.widthOfTextAtSize(line, options.size);
 
     const x = options.centered
-      ? Math.max(PDF_MARGIN_X, (A4_WIDTH - lineWidth) / 2)
+      ? Math.max(
+        PDF_MARGIN_X,
+
+        (A4_WIDTH - lineWidth) / 2,
+      )
       : PDF_MARGIN_X + indent;
 
     context.page.drawText(line, {
@@ -566,6 +651,7 @@ function drawWrappedText(
       y: context.y,
       size: options.size,
       font: options.font,
+
       color: rgb(0, 0, 0),
     });
 
@@ -580,15 +666,21 @@ function drawBullet(context: PdfContext, text: string) {
 
   context.page.drawText("•", {
     x: PDF_MARGIN_X + 2,
+
     y: context.y,
+
     size: PDF_BODY_SIZE,
+
     font: context.regular,
   });
 
   drawWrappedText(context, text, {
     font: context.regular,
+
     size: PDF_BODY_SIZE,
+
     indent: bulletIndent,
+
     lineGap: 2,
   });
 }
@@ -613,6 +705,7 @@ function wrapText(text: string, font: PDFFont, size: number, maxWidth: number) {
   for (const paragraph of paragraphs) {
     if (!paragraph.trim()) {
       lines.push("");
+
       continue;
     }
 
@@ -627,6 +720,7 @@ function wrapText(text: string, font: PDFFont, size: number, maxWidth: number) {
 
       if (width <= maxWidth) {
         line = candidate;
+
         continue;
       }
 
@@ -651,6 +745,7 @@ function sectionTitle(text: string) {
       before: 180,
       after: 70,
     },
+
     children: [
       new TextRun({
         text,
@@ -666,6 +761,7 @@ function bodyParagraph(text: string) {
     spacing: {
       after: 80,
     },
+
     children: [
       new TextRun({
         text,
@@ -680,11 +776,16 @@ function spacer() {
     spacing: {
       after: 70,
     },
+
     children: [],
   });
 }
 
-function formatDateRange(startDate: string | null, endDate: string | null) {
+function formatDateRange(
+  startDate: string | null,
+
+  endDate: string | null,
+) {
   if (!startDate && !endDate) {
     return "";
   }
@@ -704,7 +805,7 @@ function buildFileName(resume: Resume, extension: "pdf" | "docx") {
   const name = resume.basics.name
     .trim()
     .replace(/[^a-zA-Z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
+    .replace(/^|-$/g, "")
     .toLowerCase();
 
   return `${name || "resume"}-tailored.${extension}`;
@@ -716,6 +817,7 @@ function downloadBlob(blob: Blob, fileName: string) {
   const anchor = document.createElement("a");
 
   anchor.href = url;
+
   anchor.download = fileName;
 
   document.body.appendChild(anchor);

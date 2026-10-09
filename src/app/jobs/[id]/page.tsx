@@ -6,13 +6,14 @@ import { useState } from "react";
 
 import { useLiveQuery } from "dexie-react-hooks";
 
+import { exportResumeDocx, exportResumePdf } from "@/app/lib/resume-export";
+
 import { JobResultImport } from "@/components/job-result-import";
 import { ResumeEditor } from "@/components/resume-editor";
 import { ResumePreview } from "@/components/resume-preview";
 import { Win98Icon } from "@/components/win98-icon";
 import { db } from "@/db/database";
 import { saveJobResult } from "@/db/job-results";
-import { exportResumeDocx, exportResumePdf } from "@/app/lib/resume-export";
 import type { JobResult } from "@/schemas/job-result";
 import styles from "@/styles/win98.module.css";
 
@@ -23,13 +24,26 @@ type Match = "strong" | "partial" | "missing";
 type Requirement = JobResult["analysis"]["requirements"][number];
 
 export default function JobPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams<{
+    id: string;
+  }>();
+
   const jobId = params.id;
 
-  const job = useLiveQuery(() => db.jobs.get(jobId), [jobId]);
-  const result = useLiveQuery(() => db.jobResults.get(jobId), [jobId]);
+  const job = useLiveQuery(
+    () => db.jobs.get(jobId),
+
+    [jobId],
+  );
+
+  const result = useLiveQuery(
+    () => db.jobResults.get(jobId),
+
+    [jobId],
+  );
 
   const [isGenerating, setIsGenerating] = useState(false);
+
   const [generationError, setGenerationError] = useState<string | null>(null);
 
   async function generateResume() {
@@ -38,6 +52,7 @@ export default function JobPage() {
     }
 
     setIsGenerating(true);
+
     setGenerationError(null);
 
     try {
@@ -50,9 +65,14 @@ export default function JobPage() {
 
         body: JSON.stringify({
           company: job.company,
+
           title: job.title,
+
           description: job.description,
+
           url: job.url || undefined,
+
+          resumeLanguage: job.resumeLanguage,
         }),
       });
 
@@ -149,6 +169,7 @@ export default function JobPage() {
                     className={`${styles.button} ${styles.primaryButton}`}
                   >
                     <Win98Icon name="resume" />
+
                     {isGenerating
                       ? "Generating..."
                       : "Generate tailored resume"}
@@ -185,6 +206,7 @@ function GeneratedWorkspace({
   result: JobResult;
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("description");
+
   const [isEditing, setIsEditing] = useState(false);
 
   function changeTab(tab: Tab) {
@@ -227,11 +249,13 @@ function WorkspaceNavigation({
   onChange,
 }: {
   activeTab: Tab;
+
   onChange: (tab: Tab) => void;
 }) {
   const items: Array<{
     id: Tab;
     label: string;
+
     icon: "document" | "analysis" | "resume" | "sparkle";
   }> = [
       {
@@ -239,16 +263,19 @@ function WorkspaceNavigation({
         label: "Job Description",
         icon: "document",
       },
+
       {
         id: "analysis",
         label: "Analysis",
         icon: "analysis",
       },
+
       {
         id: "tailored",
         label: "Tailored Resume",
         icon: "resume",
       },
+
       {
         id: "glossed",
         label: "Glossed",
@@ -268,10 +295,12 @@ function WorkspaceNavigation({
             onClick={() => onChange(item.id)}
             className={[
               styles.navButton,
+
               active ? styles.navButtonActive : "",
             ].join(" ")}
           >
             <Win98Icon name={item.icon} />
+
             {item.label}
           </button>
         );
@@ -356,7 +385,9 @@ function RequirementGroup({
 
   const matchClass = {
     strong: styles.requirementStrong,
+
     partial: styles.requirementPartial,
+
     missing: styles.requirementMissing,
   }[match];
 
@@ -413,11 +444,14 @@ function RequirementCard({
   match,
 }: {
   requirement: Requirement;
+
   match: Match;
 }) {
   const matchClass = {
     strong: styles.matchStrong,
+
     partial: styles.matchPartial,
+
     missing: styles.matchMissing,
   }[match];
 
@@ -460,16 +494,19 @@ function TailoredView({
   onCloseEditor: () => void;
 }) {
   const [exporting, setExporting] = useState<"pdf" | "docx" | null>(null);
+
   const [exportError, setExportError] = useState<string | null>(null);
 
   async function exportPdf() {
     setExportError(null);
+
     setExporting("pdf");
 
     try {
-      await exportResumePdf(result.enhanced);
+      await exportResumePdf(result.enhanced, result.job.language);
     } catch (error) {
       console.error(error);
+
       setExportError("Could not generate the PDF.");
     } finally {
       setExporting(null);
@@ -478,12 +515,14 @@ function TailoredView({
 
   async function exportDocx() {
     setExportError(null);
+
     setExporting("docx");
 
     try {
-      await exportResumeDocx(result.enhanced);
+      await exportResumeDocx(result.enhanced, result.job.language);
     } catch (error) {
       console.error(error);
+
       setExportError("Could not generate the DOCX file.");
     } finally {
       setExporting(null);
@@ -521,6 +560,7 @@ function TailoredView({
             className={styles.button}
           >
             <Win98Icon name="pdf" />
+
             {exporting === "pdf" ? "Generating..." : "Export PDF"}
           </button>
 
@@ -531,6 +571,7 @@ function TailoredView({
             className={styles.button}
           >
             <Win98Icon name="docx" />
+
             {exporting === "docx" ? "Generating..." : "Export DOCX"}
           </button>
         </div>
@@ -539,7 +580,10 @@ function TailoredView({
       {exportError && <p className={styles.errorBox}>{exportError}</p>}
 
       <div className={styles.previewFrame}>
-        <ResumePreview resume={result.enhanced} />
+        <ResumePreview
+          resume={result.enhanced}
+          language={result.job.language}
+        />
       </div>
     </section>
   );
@@ -556,7 +600,7 @@ function GlossedView({ result }: { result: JobResult }) {
       </div>
 
       <div className={styles.previewFrame}>
-        <ResumePreview resume={result.glossed} />
+        <ResumePreview resume={result.glossed} language={result.job.language} />
       </div>
 
       <section className={styles.unsupported}>
@@ -574,6 +618,7 @@ function GlossedView({ result }: { result: JobResult }) {
             {result.glossed.unsupportedClaims.map((item) => (
               <article key={item.claim} className={styles.unsupportedItem}>
                 <p className={styles.unsupportedClaim}>{item.claim}</p>
+
                 <p className={styles.unsupportedReason}>{item.reason}</p>
               </article>
             ))}
@@ -594,6 +639,7 @@ function SectionHeading({
   return (
     <div className={styles.sectionHeading}>
       <h2 className={styles.sectionTitle}>{title}</h2>
+
       <p className={styles.sectionDescription}>{description}</p>
     </div>
   );
@@ -603,6 +649,7 @@ function OverallMatch({ score }: { score: number }) {
   return (
     <div className={styles.overall}>
       <span className={styles.overallLabel}>Overall</span>
+
       <span className={styles.overallScore}>{score}%</span>
     </div>
   );

@@ -1,14 +1,18 @@
 "use client";
 
+import { getResumeSectionLabels } from "@/app/lib/resume-i18n";
+import type { ResumeLanguage } from "@/schemas/job";
+
 import type { GeneratedJobPayload } from "@/schemas/job-result";
 
 type Resume = GeneratedJobPayload["enhanced"];
 
 type Props = {
   resume: Resume;
+  language: ResumeLanguage;
 };
 
-export function ResumePreview({ resume }: Props) {
+export function ResumePreview({ resume, language }: Props) {
   const {
     basics,
     headline,
@@ -19,6 +23,8 @@ export function ResumePreview({ resume }: Props) {
     skills,
     languages,
   } = resume;
+
+  const labels = getResumeSectionLabels(language);
 
   return (
     <article
@@ -44,12 +50,12 @@ export function ResumePreview({ resume }: Props) {
         </p>
       </header>
 
-      <ResumeSection title="SUMMARY">
+      <ResumeSection title={labels.summary}>
         <p>{summary}</p>
       </ResumeSection>
 
       {education.length > 0 && (
-        <ResumeSection title="EDUCATION">
+        <ResumeSection title={labels.education}>
           <div className="space-y-4">
             {education.map((item) => (
               <article
@@ -75,7 +81,7 @@ export function ResumePreview({ resume }: Props) {
       )}
 
       {experiences.length > 0 && (
-        <ResumeSection title="EXPERIENCE">
+        <ResumeSection title={labels.experience}>
           <div className="space-y-5">
             {experiences.map((experience) => (
               <article
@@ -114,7 +120,7 @@ export function ResumePreview({ resume }: Props) {
       )}
 
       {projects.length > 0 && (
-        <ResumeSection title="PROJECTS">
+        <ResumeSection title={labels.projects}>
           <div className="space-y-4">
             {projects.map((project) => (
               <article key={project.name} className="break-inside-avoid">
@@ -136,7 +142,7 @@ export function ResumePreview({ resume }: Props) {
       )}
 
       {skills.length > 0 && (
-        <ResumeSection title="SKILLS">
+        <ResumeSection title={labels.skills}>
           <div className="space-y-1">
             {skills.map((group) => (
               <p key={group.category}>
@@ -148,7 +154,7 @@ export function ResumePreview({ resume }: Props) {
       )}
 
       {languages.length > 0 && (
-        <ResumeSection title="LANGUAGES">
+        <ResumeSection title={labels.languages}>
           <p>
             {languages
               .map(({ language, level }) => `${language}: ${level}`)
@@ -178,7 +184,11 @@ function ResumeSection({
   );
 }
 
-function formatDateRange(startDate: string | null, endDate: string | null) {
+function formatDateRange(
+  startDate: string | null,
+
+  endDate: string | null,
+) {
   if (!startDate && !endDate) {
     return "";
   }
